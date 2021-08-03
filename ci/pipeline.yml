@@ -6,7 +6,7 @@ resource_types:
     tag: latest
 
 resources:
-- name: terraform
+- name: terraform_bosh
   type: terraform
   source:
     env_name: ((terraform_environment_name))
@@ -31,11 +31,11 @@ resources:
     private_key: ((source_code_rsa.private_key))
 
 jobs:
-- name: job
+- name: setup_bosh
   public: true
   plan:
   - get: source_code
     trigger: true
-  - put: terraform
+  - put: terraform_bosh
     params:
       terraform_source: source_code/ci/terraform
