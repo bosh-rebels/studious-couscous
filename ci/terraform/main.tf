@@ -66,7 +66,7 @@ resource "aws_security_group" "bosh_public_sg" {
   ingress {
     description = "Bosh Director from VPC"
     from_port   = 0
-    to_port     = 65535
+    to_port     = 0
     protocol    = "-1"
     cidr_blocks = [var.concourse_public_ip]
     self        = true
