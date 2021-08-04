@@ -1,5 +1,5 @@
 resource "random_pet" "rndpet" {
-
+  keepers = var.env_name
 }
 
 resource "aws_vpc" "bosh_vpc" {
@@ -82,4 +82,15 @@ resource "aws_security_group" "bosh_public_sg" {
   tags = {
     Name = "bosh_public"
   }
+}
+
+resource "tls_private_key" "this" {
+  algorithm = "RSA"
+}
+
+module "key_pair" {
+  source = "terraform-aws-modules/key-pair/aws"
+
+  key_name   = var.env_name
+  public_key = tls_private_key.this.public_key_openssh
 }

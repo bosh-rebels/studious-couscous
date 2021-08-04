@@ -21,6 +21,7 @@ resources:
       tag_name: concourse
       env_region: ((environment_region))
       concourse_public_ip: ((concourse_public_ip))
+      env_name: ((terraform_environment_name))
     env:
       AWS_ACCESS_KEY_ID: ((environment_access_key))
       AWS_SECRET_ACCESS_KEY: ((environment_secret_key))
@@ -32,12 +33,52 @@ resources:
     branch: main
     private_key: ((source_code_rsa.private_key))
 
+- name: bosh_code
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-deployment
+    branch: master
+
+- name: bosh_docker_image
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-cli
+    tag: 'v2'
+
 jobs:
 - name: setup_bosh
   public: true
   plan:
   - get: source_code
     trigger: true
+  - get: bosh_code
   - put: terraform_bosh
     params:
       terraform_source: source_code/ci/terraform
+  - task: deploy_bosh
+    image: bosh_docker_image
+    config:
+      platform: linux
+      inputs:
+        - name: bosh_code
+      run:
+        path: /bin/bash
+        args:
+          - -c
+          - |
+            bosh create-env bosh_code/bosh.yml \
+            --state=state.json \
+            --vars-store=creds.yml \
+            -o bosh_code/aws/cpi.yml \
+            -v director_name=bosh-1 \
+            -v internal_cidr=10.0.1.0/24 \
+            -v internal_gw=10.0.1.1 \
+            -v internal_ip=10.0.1.6 \
+            -v access_key_id=((environment_access_key)) \
+            -v secret_access_key=((environment_secret_key)) \
+            -v region=((environment_region)) \
+            -v az=eu-west-1a \
+            -v default_key_name=bosh \  ####
+            -v default_security_groups=[bosh] \
+            --var-file private_key=some.pem \  ####
+            -v subnet_id=  ####
