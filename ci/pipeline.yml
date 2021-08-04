@@ -19,6 +19,8 @@ resources:
       secret_key: ((environment_secret_key))
     vars:
       tag_name: concourse
+      env_region: ((environment_region))
+      concourse_public_ip: ((concourse_public_ip))
     env:
       AWS_ACCESS_KEY_ID: ((environment_access_key))
       AWS_SECRET_ACCESS_KEY: ((environment_secret_key))
