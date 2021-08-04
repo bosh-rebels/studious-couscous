@@ -43,7 +43,7 @@ resources:
   type: docker-image
   source:
     repository: cloudfoundry/bosh-cli
-    tag: 'v2'
+    tag: 'latest'
 
 jobs:
 - name: setup_bosh
@@ -55,6 +55,9 @@ jobs:
   - put: terraform_bosh
     params:
       terraform_source: source_code/ci/terraform
+  - load_var: terraform_outputs
+    file: terraform_bosh/metadata
+    format: json
   - task: deploy_bosh
     image: bosh_docker_image
     config:
@@ -78,7 +81,8 @@ jobs:
             -v secret_access_key=((environment_secret_key)) \
             -v region=((environment_region)) \
             -v az=eu-west-1a \
-            -v default_key_name=bosh \  ####
-            -v default_security_groups=[bosh] \
-            --var-file private_key=some.pem \  ####
-            -v subnet_id=  ####
+            -v default_key_name=((.:terraform_outputs.bosh_private_key_name)) \  ####
+            -v default_security_groups=[bosh_private] \
+            --var private_key=((.:terraform_outputs.bosh_private_key)) \  ####
+            -v subnet_id=((.:terraform_outputs.bosh_private_subnet))
+
